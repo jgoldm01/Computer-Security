@@ -1,5 +1,7 @@
 #!/usr/bin/ruby
 
+#alarm.rb by Jeremy Goldman, 10/7
+
 require 'packetfu'
 require 'base64'
 
@@ -7,6 +9,8 @@ $INCIDENTNUM = 0;
 
 #-----------------------------------------------------------------------------#
 
+#tests to see if shellcode is present in the server log, by looking for
+#multiple "\x_" strings in a row
 def test_shellCode(line)
     line2 = line.clone
     #first check if there is an HTTP protocol attached, some legitimate sites
@@ -33,6 +37,8 @@ def test_shellCode(line)
     return true
 end
 
+#tests for nmap scan by checking if the string nmap is presnet in the log,
+#it may be the program that sent the request and that may be evident
 def test_nmap(line)
     index = line.index("N")
     if index != nil
@@ -42,6 +48,8 @@ def test_nmap(line)
     return false
 end
 
+#looks for the 4 number in the exact right location of the string parsed log
+#which would indicate an http error
 def test_http_err(line)
     index = line.index("\" 4")
     if index != nil
@@ -63,6 +71,7 @@ def get_ip(line)
     end
 end
 
+#returns the protocol of a line of the web server log
 def get_protocol(line)
     str = ""
     quoteNum = 0;
@@ -101,6 +110,7 @@ def get_payload(line)
     end
 end
 
+#prints out the incident message for web servers
 def display_incident(type, line)
     $INCIDENTNUM += 1
     str = "#{$INCIDENTNUM}. ALERT: #{type} is detected from #{get_ip(line)} "\
@@ -145,6 +155,8 @@ def susp_ip(pck, ipSource, sameSourceCount, type, newType)
     return ipSource, sameSourceCount, newType
 end
 
+#checks if there is a plain text credit leak in the packet. 
+#first it looks for the starting numbers that are registered for credit cards
 def check_credit_leak(pck)
     payload = pck.payload
     for i in 1..payload.length do
@@ -157,7 +169,9 @@ def check_credit_leak(pck)
     end
 end
 
-#this needs to be finished
+#starting number has been found, checks to see if the rest of the card is 
+#available in plain text. it does this by looking at the format of the number,
+# xxxx xxxx xxxx xxxx and xxxx_xxxx_xxxx_xxxx are accepted
 def card_index(i, payload)
     validCount = 1;
     if i <= payload.length-18
