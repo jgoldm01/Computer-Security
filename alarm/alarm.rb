@@ -145,13 +145,45 @@ def susp_ip(pck, ipSource, sameSourceCount, type, newType)
     return ipSource, sameSourceCount, newType
 end
 
+def check_credit_leak(pck)
+    payload = pck.payload
+    for i in 1..payload.length do
+        if payload[i].to_i > 2 && payload[i].to_i < 7
+            if card_index(i, payload)
+                display_live_incident("Credit card leaked in the clear", pck)
+                return
+            end
+        end
+    end
+end
+
+#this needs to be finished
+def card_index(i, payload)
+    validCount = 1;
+    if i <= payload.length-18
+        sentinel = i+12
+        for i in (i..i+12).step(4)
+            for j in 1..3
+                if (payload[i+j] != payload[i+j].to_i.to_s)
+                    return false
+                end
+            end
+            if not ((i == sentinel) || (payload[i+4].eql? "-") \
+            || (payload[i+4].eql? " "))
+                return false
+            end
+        end
+        return true
+    end
+end
+
 def display_live_incident(type, pck)
     $INCIDENTNUM += 1
     
     if pck.is_udp?
         protocol = "UDP"
     elsif pck.is_tcp?
-        protocol "HTTP"
+        protocol = "HTTP"
     end
     
     payload = Base64.encode64(pck.payload)
@@ -190,6 +222,7 @@ else
                     ipSource, sameSourceCount, type \
                     = susp_ip(pck, ipSource, sameSourceCount, type, "XMAS scan")
                 end
+                check_credit_leak(pck)
             end
         end 
     end
