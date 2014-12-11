@@ -1,0 +1,92 @@
+Files: RSA.py, Qubit_prime_factorization.py, qubit.py
+
+As supporting material, I have created two implementations of the quantum bit
+in python, as well as demonstrations of their potential applications. Because
+I obviously do not have access to an actual quantum bit, these implementations
+require a polynomial increase in the time required to operate. 
+
+qubit.py: this class acts similar to a naive interpretation of the 
+quantum bit where states are not precise, but rather a wave function. 
+Essentially, this qubit represents the measurement of states, but crucially
+does not utilize the superposition of these particles. 
+
+*note: an important factor in the practical use of qubits is precision. 
+precision can be defined as the accuracy of changes & measurements to the 
+Quantum states. It is not a constant, but can be defined either as an average
+or a wave function. 
+
+
+As stated in the paper, quantum bits will prove crucial in decrypting code. The
+example I provide deals with the RSA, currently one of the most popular and 
+powerful encryption schemes available. RSA.py requests two prime numbers, and 
+outputs the public key (the int e and int N) as well as a 
+private key (the int d). RSA can generate multiple private keys so long as
+the public key holder has multiple 'e's associated with each private key. 
+
+The actual RSA encryption scheme is as follows: 
+variables: int M, int e, int d, int N, int c, int p1, int p2
+purposes: message m, exponent e, exponent d, modulus value N, hidden message c, 
+					prime p1, prime p2
+
+
+the private user (alice) generates two large primes, p1 & p2. 
+/* generate an even larger prime by multiplying the two */
+alice: n = p1 * p2. 
+/* 
+ * phi(x): the total numbers less than x which share a common factor other than 
+ * one. the phi value for any prime number p is (p-1) 
+ * for instance, phi(8) = 4, phi(7) = 6. 
+ */
+alice: phi(n) = phi(p1) * phi(p2)
+alice: k = 2; //k need not be two, but we shall keep it there for simplicity
+/* choose a value for e that is odd and not a factor of phi(n) */
+alice: e = 3;
+alice: d = (k*phi(n)+1)/e
+
+alice: send n & e to bob, as public keys
+alice: keep d, as a private key
+
+bob: generate message, m
+/* encrypt numerical representation of message, m, into cyphetext, c */
+bob: m^e mod n = c
+bob: send alice c
+
+/* decrypt cypher text using bob's private key */
+alice: c^d mod n = m
+
+This algorithm is so effective because it requires eve to do a computation known
+as prime factorization, which is very computationally difficult. A computer can
+easily multiply two large primes, but factoring two primes out of a large number
+takes an exquisitely long time. this is because there is no known algorithm to 
+figure this out, one must guess and check the factors of the number. This is
+why in some cases it can take years to decrypt RSA using a classical computer. 
+
+This is where qubits come in. fully functional and precise qubits have the 
+ability to be in 2^n states at once, n being the number of qubits. Thus guessing 
+the prime factors becomes an exponentially faster task. 
+Qubit_prime_factorization.py demonstrates this ability conceptually, though it
+executes at the speed of a classical computer
+
+RSA.py can be executed in the following ways:
+
+RSA -g p1 p2  	 -- generates public keys n & e, and private key d. 
+										p1 and p2 MUST BE PRIMES. otherwise, the next components of
+										the algorithm will not produce accurate results
+RSA -e m n e 	 -- encrypts message m using exponent e and modulus value n. 
+								 returns the encrypted message 
+								 note: if m is a string, it will be converted to integer value 
+								 and encrypted
+RSA -d c n d		 -- decrypts cyphertext c using exponent d and modulus value n.
+								 returns the decrypted message (as an integer)
+RSA -s -d c n d	-- decrypts cyphertext c using exponent d and modulus value n.
+								 returns the decrypted message (as a string)
+
+
+Qubit_prime_factorization.py uses the qubit classes to calculate the prime factors
+of a large number. It will give you the prime factors, as well as tne number of
+qubits required for this operation. Looking at the soruce code will give some
+intuition as to how qubits will work. Of course, because these are only 
+representations of qubits, computation is exponential as the size of the input
+number increases. 
+
+./Qubit_prime_factorization.py p -- p is the number one wishes to factor
